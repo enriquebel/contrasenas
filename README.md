@@ -6,4 +6,4 @@ Todo se ejecuta en el navegador: la página no envía ningún dato.
 
 https://enriquebel.github.io/contrasenas
 
-Datos: NordPass, Top 200 Most Common Passwords (2025).
+Datos: NordPass, Top 200 Most Common Passwords (2025) — copia en `top200_nordpass_2025.csv`.
