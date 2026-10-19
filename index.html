@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Cuánto tarda en caer tu contraseña? · EBUmates</title>
+<meta name="description" content="Calculadora matemática de EBUmates: combinaciones, bits de entropía y tiempo de fuerza bruta. Funciona en tu navegador, no envía nada.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#001C54; --red:#E00E1C; --green:#138A3D; --orange:#F28C00;
+  --bg:#F6F7FA; --card:#FFFFFF; --text:#14213D; --muted:#5B6478; --line:#DDE1EA;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1226; --card:#121B36; --text:#E9EDF6; --muted:#A3ACC2; --line:#26304F;
+    --green:#2BB463; --red:#FF4B55;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1226; --card:#121B36; --text:#E9EDF6; --muted:#A3ACC2; --line:#26304F;
+  --green:#2BB463; --red:#FF4B55;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;line-height:1.5}
+header{background:#001C54;color:#fff;padding:28px 16px 24px}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+header .wrap{padding:0}
+.brand{font-family:Fredoka,sans-serif;font-weight:700;letter-spacing:.5px;color:#F28C00;font-size:15px}
+h1{font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(26px,5vw,38px);margin:6px 0 6px;line-height:1.15}
+header p{margin:0;opacity:.85}
+main{padding:24px 0 48px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+label{font-weight:700;display:block;margin-bottom:8px}
+.inrow{display:flex;gap:8px}
+input[type=text],input[type=password]{flex:1;min-width:0;font:inherit;font-size:20px;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
+input:focus{outline:none;border-color:var(--orange)}
+button{font:inherit;font-weight:700;border:2px solid var(--line);background:var(--bg);color:var(--text);border-radius:10px;padding:0 14px;cursor:pointer}
+.note{font-size:14px;color:var(--muted);margin-top:10px}
+.speeds{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.speeds label{font-weight:400;margin:0;border:2px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:15px}
+.speeds input{accent-color:var(--orange)}
+.speeds label:has(input:checked){border-color:var(--orange)}
+.verdict{font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(28px,6vw,44px);line-height:1.1;margin:4px 0 6px}
+.v-bad{color:var(--red)} .v-mid{color:var(--orange)} .v-good{color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:10px}
+.stat b{display:block;font-size:20px;font-family:Fredoka,sans-serif}
+.stat span{font-size:13px;color:var(--muted)}
+.formula{font-family:"STIX Two Math","Cambria Math",serif;font-size:18px;background:var(--bg);border-radius:10px;padding:12px 14px;margin-top:14px;overflow-x:auto;white-space:nowrap}
+.warn{border-left:4px solid var(--red);padding:8px 12px;margin-top:12px;background:var(--bg);border-radius:0 8px 8px 0}
+h2{font-family:Fredoka,sans-serif;font-size:22px;margin:0 0 10px;color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.top{display:flex;flex-wrap:wrap;gap:6px}
+.top code{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:14px}
+footer{text-align:center;font-size:13px;color:var(--muted);padding:0 16px 32px}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand">EBUmates</div>
+  <h1>¿Cuánto tarda en caer tu contraseña?</h1>
+  <p>La seguridad de una contraseña es un problema de combinatoria. Aquí tienes las cuentas.</p>
+</div></header>
+
+<main class="wrap">
+  <section class="card">
+    <label for="pw">Escribe una contraseña de ejemplo</label>
+    <div class="inrow">
+      <input id="pw" type="password" autocomplete="off" spellcheck="false" placeholder="p. ej. Pass@123">
+      <button id="eye" type="button" aria-label="Mostrar u ocultar">👁</button>
+    </div>
+    <p class="note">🔒 Todo se calcula en tu navegador: esta página no envía nada a ningún sitio. Aun así, prueba con ejemplos parecidos, no con tu contraseña real.</p>
+
+    <div style="margin-top:14px"><b>Velocidad del atacante</b></div>
+    <div class="speeds" id="speeds">
+      <label><input type="radio" name="sp" value="100"> Web con límite de intentos · 100/s</label>
+      <label><input type="radio" name="sp" value="100000"> Ordenador, cifrado lento · 100.000/s</label>
+      <label><input type="radio" name="sp" value="1e10" checked> Tarjeta gráfica, cifrado rápido · 10.000 millones/s</label>
+    </div>
+  </section>
+
+  <section class="card" id="out" aria-live="polite">
+    <div class="note" id="empty">Escribe algo arriba para ver el cálculo.</div>
+    <div id="res" hidden>
+      <div class="note">Tiempo medio para adivinarla</div>
+      <div class="verdict" id="time"></div>
+      <div id="why"></div>
+      <div class="grid">
+        <div class="stat"><b id="sL"></b><span>caracteres (L)</span></div>
+        <div class="stat"><b id="sN"></b><span>símbolos posibles (N)</span></div>
+        <div class="stat"><b id="sB"></b><span>bits de entropía</span></div>
+      </div>
+      <div class="formula" id="formula"></div>
+      <div id="warns"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>La idea en una línea</h2>
+    <p>Si cada carácter puede ser uno de <b>N</b> símbolos y la contraseña tiene <b>L</b> caracteres, hay <b>N<sup>L</sup></b> combinaciones. De media, el atacante acierta a mitad de camino: <b>N<sup>L</sup> ÷ 2</b> intentos.</p>
+    <p>Los <b>bits</b> son la misma idea en otra escala: <b>L × log₂ N</b>. Cada bit extra <b>duplica</b> el tiempo.</p>
+    <table>
+      <thead><tr><th>Tipo de contraseña</th><th class="num">Combinaciones</th><th class="num">Tiempo medio*</th></tr></thead>
+      <tbody>
+        <tr><td>6 cifras</td><td class="num">10<sup>6</sup></td><td class="num">0,00005 s</td></tr>
+        <tr><td>8 minúsculas</td><td class="num">2,1 · 10<sup>11</sup></td><td class="num">10 s</td></tr>
+        <tr><td>8 con mayúsculas y cifras</td><td class="num">2,2 · 10<sup>14</sup></td><td class="num">3 horas</td></tr>
+        <tr><td>8 con todo el teclado</td><td class="num">6,1 · 10<sup>15</sup></td><td class="num">3,5 días</td></tr>
+        <tr><td>12 con todo el teclado</td><td class="num">4,8 · 10<sup>23</sup></td><td class="num">754.000 años</td></tr>
+        <tr><td>16 minúsculas</td><td class="num">4,4 · 10<sup>22</sup></td><td class="num">69.000 años</td></tr>
+        <tr><td>6 palabras al azar (lista de 7.776)</td><td class="num">2,2 · 10<sup>23</sup></td><td class="num">350.000 años</td></tr>
+      </tbody>
+    </table>
+    <p class="note">* A 10.000 millones de intentos por segundo, solo si la contraseña es aleatoria. Si está en una lista de contraseñas conocidas, cae al instante.</p>
+  </section>
+
+  <section class="card">
+    <h2>Las 20 más usadas del mundo</h2>
+    <p class="note" style="margin-top:0">Fuente: NordPass, informe 2025 (filtraciones de septiembre 2024 a septiembre 2025, 44 países).</p>
+    <div class="top" id="top20"></div>
+  </section>
+</main>
+<footer>EBUmates · Las matemáticas crecen contigo</footer>
+
+<script>
+(function(){
+  // NordPass 2025 top 20 (global) + otras posiciones verificadas del mismo informe
+  var TOP20 = ["123456","admin","12345678","123456789","12345","password","Aa123456","1234567890","Pass@123","admin123","1234567","123123","111111","12345678910","P@ssw0rd","Password","Aa@123456","admintelecom","Admin@123","112233"];
+  var EXTRA = ["Pass@1234","Demo@123","Welcome123","123456789a","asdfghjkl","secret","123456aA@","q1w2e3r4","qwerty","qwerty123","qwerty1","abc123","password1","iloveyou","000000","11111111","dragon","monkey","contraseña","contrasena","españa","espana","barcelona","madrid","maria","1234","1q2w3e4r","1q2w3e4r5t","qwertyuiop","skibidi","Contraseña"];
+  var KNOWN = {}; TOP20.concat(EXTRA).forEach(function(p){KNOWN[p.toLowerCase()]=true;});
+
+  var box=document.getElementById("top20");
+  TOP20.forEach(function(p,i){var c=document.createElement("code");c.textContent=(i+1)+". "+p;box.appendChild(c);});
+
+  var pw=document.getElementById("pw");
+  document.getElementById("eye").onclick=function(){pw.type=pw.type==="password"?"text":"password";};
+
+  var fmt=new Intl.NumberFormat("es-ES",{maximumFractionDigits:1, useGrouping:"always"});
+  function nf(x){if(x>=100)x=Math.round(x);try{return fmt.format(x);}catch(e){return String(Math.round(x));}}
+
+  function sci(log10){ // log10 -> "a · 10^b"
+    if(log10<6){return nf(Math.round(Math.pow(10,log10)));}
+    var e=Math.floor(log10), m=Math.pow(10,log10-e);
+    return m.toFixed(1).replace(".",",")+" · 10<sup>"+e+"</sup>";
+  }
+
+  function human(log10s){ // tiempo en segundos (log10)
+    if(log10s < 0) return "menos de 1 segundo";
+    var s=Math.pow(10,log10s);
+    var Y=31557600;
+    if(s<60) return nf(s)+" segundos";
+    if(s<3600) return nf(s/60)+" minutos";
+    if(s<86400) return nf(s/3600)+" horas";
+    if(s<Y) return nf(s/86400)+" días";
+    var y=log10s-Math.log10(Y);
+    if(y<6) return nf(Math.pow(10,y))+" años";
+    if(y<9) return nf(Math.pow(10,y-6))+" millones de años";
+    if(y<12) return nf(Math.pow(10,y-9))+" mil millones de años";
+    return "10<sup>"+Math.floor(y)+"</sup> años";
+  }
+
+  function pool(p){
+    var n=0, parts=[];
+    if(/[a-zñ]/.test(p)){n+=26;parts.push("minúsculas 26");}
+    if(/[A-ZÑ]/.test(p)){n+=26;parts.push("mayúsculas 26");}
+    if(/[0-9]/.test(p)){n+=10;parts.push("cifras 10");}
+    if(/[^a-zA-Z0-9ñÑ]/.test(p)){n+=32;parts.push("símbolos 32");}
+    return {n:n, parts:parts};
+  }
+
+  function patterns(p){
+    var w=[], l=p.toLowerCase();
+    if(/(19|20)\d\d/.test(p)) w.push("Contiene un año: es de lo primero que se prueba.");
+    if(/(qwert|asdf|zxcv|1q2w|qaz)/.test(l)) w.push("Es un recorrido del teclado: está en todas las listas.");
+    if(/(0123|1234|2345|3456|4567|5678|6789|abcd)/.test(l)) w.push("Contiene una secuencia (1234, abcd...).");
+    if(/(.)\1\1/.test(p)) w.push("Repite el mismo carácter varias veces.");
+    // sustitución típica: @, $, 0, 3, 1, ! entre dos letras (p@ssw0rd)
+    if(/[a-zñ][@$031!][a-zñ]/.test(l))
+      w.push("Si es una palabra con sustituciones (@ por a, 0 por o), los programas las prueban automáticamente.");
+    return w;
+  }
+
+  function speed(){var r=document.querySelector('input[name=sp]:checked');return parseFloat(r?r.value:"1e10");}
+
+  function run(){
+    var p=pw.value, res=document.getElementById("res"), empty=document.getElementById("empty");
+    if(!p){res.hidden=true;empty.hidden=false;return;}
+    res.hidden=false;empty.hidden=true;
+    var L=Array.from(p).length, P=pool(p), N=P.n||1;
+    var log10c=L*Math.log10(N);
+    var bits=L*Math.log2(N);
+    var log10t=log10c-Math.log10(2)-Math.log10(speed());
+    var known=KNOWN[p.toLowerCase()];
+    // Frase de contraseña: si son 3+ palabras separadas, se cuenta por palabras (lista de 7.776)
+    var words=p.split(/[\s\-_.,]+/).filter(function(x){return /^[a-záéíóúñü]{3,}$/i.test(x);});
+    var phrase=false;
+    if(words.length>=3 && words.join("").length>=p.replace(/[\s\-_.,]/g,"").length){
+      var log10w=words.length*Math.log10(7776);
+      if(log10w<log10c){ phrase=true; log10c=log10w; bits=words.length*Math.log2(7776); log10t=log10c-Math.log10(2)-Math.log10(speed()); }
+    }
+    var t=document.getElementById("time"), why=document.getElementById("why");
+    if(known){
+      t.innerHTML="al instante"; t.className="verdict v-bad";
+      why.innerHTML="<div class='warn'><b>Está en las listas de contraseñas más usadas.</b> Un atacante no la calcula: la prueba de las primeras. La fuerza bruta daría "+human(log10t)+", pero eso no sirve de nada.</div>";
+    } else {
+      t.innerHTML=human(log10t);
+      var y=log10t-Math.log10(31557600);
+      t.className="verdict "+(y<0?"v-bad":(y<3?"v-mid":"v-good"));
+      why.innerHTML="";
+    }
+    document.getElementById("sL").textContent=L;
+    document.getElementById("sN").textContent=N;
+    document.getElementById("sB").textContent=nf(bits);
+    document.getElementById("formula").innerHTML= phrase ?
+      "7.776<sup>"+words.length+"</sup> = "+sci(log10c)+" combinaciones &nbsp;→&nbsp; ÷ 2 ÷ "+nf(speed())+" intentos/s" :
+      N+"<sup>"+L+"</sup> = "+sci(log10c)+" combinaciones &nbsp;→&nbsp; ÷ 2 ÷ "+nf(speed())+" intentos/s";
+    var w=patterns(p).map(function(x){return "<div class='warn'>"+x+"</div>";}).join("");
+    if(phrase) w+="<p class='note'>Frase de "+words.length+" palabras: el atacante prueba palabras, no letras, así que se cuenta como 7.776 opciones por palabra (solo vale si las palabras se eligieron al azar).</p>";
+    else if(P.parts.length) w+="<p class='note'>Alfabeto detectado: "+P.parts.join(" + ")+" = "+N+".</p>";
+    document.getElementById("warns").innerHTML=w;
+  }
+  pw.addEventListener("input",run);
+  document.getElementById("speeds").addEventListener("change",run);
+})();
+</script>
+</body>
+</html>
